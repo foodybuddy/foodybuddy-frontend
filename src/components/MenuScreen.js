@@ -6,7 +6,6 @@ const CATS = [
   { key: "meals", label: "Meals" },
   { key: "snacks", label: "Snacks" },
   { key: "drinks", label: "Drinks" },
-  { key: "breakfast", label: "Breakfast" },
 ];
 
 export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, removeItem, onCartClick, onAdminClick, onLogout }) {

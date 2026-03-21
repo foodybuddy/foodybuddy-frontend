@@ -52,7 +52,7 @@ export default function AuthScreen({ onBack, onAuth }) {
 
           <div className="field">
             <label className="field-label">Full Name</label>
-            <input className="field-input" placeholder="e.g. Jachin Samuel" value={name} onChange={e => setName(e.target.value)} onKeyDown={handleKey} autoFocus />
+            <input className="field-input" placeholder="Enter your name" value={name} onChange={e => setName(e.target.value)} onKeyDown={handleKey} autoFocus />
           </div>
 
           {mode === "register" && (
