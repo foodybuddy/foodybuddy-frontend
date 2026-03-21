@@ -105,7 +105,7 @@ export default function AdminPanel({ user, onBack, onLogout }) {
             <div className="order-card" key={o.order_id}>
               <div className="order-top">
                 <div>
-                  <div className="order-id">{o.order_id}<span className="token-pill">{o.token_type}</span></div>
+                  <div className="oid">{o.order_id}<span className="token-pill">{o.token_type}</span>{o.payment_id === "CASH" && (<span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: "#FFFBEB", color: "#92400E", fontWeight: 700, marginLeft: 4, textTransform: "uppercase" }}>Cash</span>)}</div>
                   <div className="order-meta">{o.name} · {o.phone}</div>
                 </div>
                 <div className={`status-pill sp-${o.status}`}>{STATUS_LABEL[o.status]}</div>
