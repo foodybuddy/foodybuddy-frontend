@@ -14,8 +14,11 @@ export default function LandingPage({ onLogin }) {
       justifyContent: "space-between", padding: "3.5rem 1.75rem 2.5rem",
       position: "relative", overflow: "hidden"
     }}>
-
-      {/* Animated background blobs */}
+      <div style={{
+        position: "absolute", inset: 0, opacity: 0.04,
+        backgroundImage: "repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)",
+        backgroundSize: "20px 20px"
+      }} />
       <div style={{
         position: "absolute", width: 320, height: 320, borderRadius: "50%",
         background: "#D94F00", opacity: 0.08, filter: "blur(80px)",
