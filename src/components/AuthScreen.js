@@ -79,11 +79,6 @@ export default function AuthScreen({ onBack, onAuth }) {
           }
         </div>
 
-        {mode === "login" && (
-          <div style={{ marginTop: "1.5rem", padding: "12px 14px", background: "var(--light)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", fontSize: 12, color: "var(--mid)", lineHeight: 1.6 }}>
-            <strong style={{ color: "var(--dark)" }}>Admin access:</strong> Register with the name "Admin" and the canteen admin password to access the admin panel.
-          </div>
-        )}
       </div>
     </div>
   );
