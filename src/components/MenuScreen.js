@@ -35,10 +35,10 @@ export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, 
             <div className="logo-sub">Karunya Canteen</div>
           </div>
           <div className="header-actions">
+            <button className="icon-btn" onClick={onHistoryClick} title="My Orders">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </button>
             <div className="user-pill" onClick={onLogout} style={{ cursor: "pointer" }} title="Logout">
-              <button className="ib" onClick={onHistoryClick} title="My Orders">
-                <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
-              </button>
               <div className="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
               {user.name.split(" ")[0]}
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6B6B6B" strokeWidth="2.5" style={{ marginLeft: 2 }}>
