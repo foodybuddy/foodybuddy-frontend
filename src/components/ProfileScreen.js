@@ -22,11 +22,7 @@ export default function ProfileScreen({ user, onBack, onLogout, onUserUpdate }) 
 
   useEffect(() => {
     if (tab === "orders") {
-      setLoading(true);
-      fetch(`${API}/orders/history/${user.phone}`)
-        .then(r => r.json())
-        .then(data => { setOrders(data); setLoading(false); })
-        .catch(() => setLoading(false));
+      fetchOrders();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
