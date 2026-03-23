@@ -6,6 +6,7 @@ import CartScreen from "./components/CartScreen";
 import PaymentScreen from "./components/PaymentScreen";
 import SuccessScreen from "./components/SuccessScreen";
 import AdminPanel from "./components/AdminPanel";
+import OrderHistory from "./components/OrderHistory";
 import "./App.css";
 
 export default function App() {
@@ -57,6 +58,7 @@ export default function App() {
           onCartClick={() => setScreen("cart")}
           onAdminClick={() => setScreen("admin")}
           onLogout={handleLogout}
+          onHistoryClick={() => setScreen("history")}
         />
       )}
       {screen === "cart" && user && (
@@ -75,6 +77,9 @@ export default function App() {
       )}
       {screen === "admin" && user && (
         <AdminPanel user={user} onBack={() => setScreen("menu")} onLogout={handleLogout} />
+      )}
+      {screen === "history" && user && (
+        <OrderHistory user={user} onBack={() => setScreen("menu")} />
       )}
     </div>
   );
