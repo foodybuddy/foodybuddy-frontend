@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 
-const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const API  = process.env.REACT_APP_API_URL || "http://localhost:5000";
 const CATS = [
-  { key: "all", label: "All" },
-  { key: "meals", label: "Meals" },
-  { key: "snacks", label: "Snacks" },
-  { key: "drinks", label: "Drinks" },
+  { key:"all",       label:"All"       },
+  { key:"meals",     label:"Meals"     },
+  { key:"snacks",    label:"Snacks"    },
+  { key:"drinks",    label:"Drinks"    },
+  { key:"breakfast", label:"Breakfast" },
 ];
 
-export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, removeItem, onCartClick, onAdminClick, onLogout, onHistoryClick }) {
-  const [cat, setCat] = useState("all");
-  const [search, setSearch] = useState("");
-  const [menu, setMenu] = useState([]);
+export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, removeItem, onCartClick, onAdminClick, onLogout, onProfileClick }) {
+  const [cat,     setCat]     = useState("all");
+  const [search,  setSearch]  = useState("");
+  const [menu,    setMenu]    = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,6 +27,8 @@ export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, 
     (!search || i.name.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const initials = user.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0,2);
+
   return (
     <div>
       <div className="header">
@@ -35,31 +38,31 @@ export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, 
             <div className="logo-sub">Karunya Canteen</div>
           </div>
           <div className="header-actions">
-            <button className="icon-btn" onClick={onHistoryClick} title="My Orders">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            </button>
-            <div className="user-pill" onClick={onLogout} style={{ cursor: "pointer" }} title="Logout">
-              <div className="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
-              {user.name.split(" ")[0]}
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6B6B6B" strokeWidth="2.5" style={{ marginLeft: 2 }}>
-                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
+
+            {/* Profile avatar button */}
+            <div onClick={onProfileClick} title="My Profile" style={{ width:38, height:38, borderRadius:"50%", background:"var(--or)", border:"2px solid var(--dark)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", flexShrink:0 }}>
+              {user.photo_url
+                ? <img src={user.photo_url} alt="avatar" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                : <span style={{ fontFamily:"'Fraunces',serif", fontSize:14, fontWeight:900, color:"white" }}>{initials}</span>
+              }
             </div>
+
+            {/* Admin button */}
             {user.role === "admin" && (
               <button className="icon-btn" onClick={onAdminClick} title="Admin Panel">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--dark)" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
               </button>
             )}
-            <button className="icon-btn filled" onClick={onCartClick}>
-              <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" /></svg>
+
+            {/* Cart button */}
+            <button className="icon-btn filled" onClick={onCartClick} style={{ position:"relative" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
               {cartCount > 0 && <div className="cart-badge">{cartCount}</div>}
             </button>
           </div>
         </div>
         <div className="search">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#BDBDBD" strokeWidth="2.5"><circle cx="11" cy="11" r="6" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#BDBDBD" strokeWidth="2.5"><circle cx="11" cy="11" r="6"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input placeholder="Search menu..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
       </div>
@@ -77,16 +80,16 @@ export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, 
         {!loading && <span className="section-count">{filtered.length} items</span>}
       </div>
 
-      {loading && <div style={{ display: "flex", justifyContent: "center", padding: "3rem" }}><div className="spinner" /></div>}
+      {loading && <div style={{ display:"flex", justifyContent:"center", padding:"3rem" }}><div className="spinner" /></div>}
 
       <div className="menu-grid">
         {!loading && filtered.length === 0 && (
-          <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "2rem", color: "var(--mid)" }}>No items found</div>
+          <div style={{ gridColumn:"1/-1", textAlign:"center", padding:"2rem", color:"var(--mid)" }}>No items found</div>
         )}
         {filtered.map((item, idx) => {
           const qty = cart[item.id]?.qty || 0;
           return (
-            <div className="item-card" key={item.id} style={{ animationDelay: `${idx * 0.04}s` }}>
+            <div className="item-card" key={item.id} style={{ animationDelay:`${idx * 0.04}s` }}>
               <div className="item-img">
                 {item.image_url
                   ? <img src={item.image_url} alt={item.name} />
@@ -103,10 +106,10 @@ export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, 
                   {qty === 0
                     ? <button className="add-btn" onClick={() => addItem(item)}>+</button>
                     : <div className="qty-ctrl">
-                      <button onClick={() => removeItem(item.id)}>−</button>
-                      <span>{qty}</span>
-                      <button onClick={() => addItem(item)}>+</button>
-                    </div>
+                        <button onClick={() => removeItem(item.id)}>−</button>
+                        <span>{qty}</span>
+                        <button onClick={() => addItem(item)}>+</button>
+                      </div>
                   }
                 </div>
               </div>
