@@ -40,7 +40,7 @@ export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, 
           <div className="header-actions">
 
             {/* Profile avatar button */}
-            <div onClick={onProfileClick} title="My Profile" style={{ width: 38, height: 38, borderRadius: "50%", background: "#D94F00", border: "2px solid #1C1C1C", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <div onClick={onProfileClick} title="My Profile" style={{ width: 38, height: 38, borderRadius: "50%", background: "#D94F00", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <span style={{ fontFamily: "serif", fontSize: 14, fontWeight: 900, color: "white", lineHeight: 1 }}>{initials}</span>
             </div>
 
