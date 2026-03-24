@@ -121,7 +121,7 @@ export default function ProfileScreen({ user, onBack, onLogout, onUserUpdate }) 
                 {[
                   { label: "Full Name", value: user.name },
                   { label: "WhatsApp Number", value: user.phone ? `+91 ${user.phone}` : "Not added" },
-                  { label: "Role", value: user.role === "admin" ? "Admin" : "Student / Staff" },
+                  ...(user.role === "admin" ? [{ label: "Role", value: "Admin" }] : []),
                 ].map((item, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: "1px solid var(--bd)" }}>
                     <div style={{ fontSize: 12, color: "var(--mid)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>{item.label}</div>
