@@ -15,7 +15,6 @@ export default function CartScreen({ user, cartItems, cartTotal, onBack, onCheck
         <div className="screen-title">Your Cart</div>
       </div>
       <div className="screen-body">
-
         {cartItems.map(item => (
           <div className="cart-item" key={item.id}>
             <div className="cart-thumb">
@@ -33,7 +32,6 @@ export default function CartScreen({ user, cartItems, cartTotal, onBack, onCheck
             </div>
           </div>
         ))}
-
         <div className="divider" />
         <div className="total-row">
           <span className="total-label">Total</span>
