@@ -7,7 +7,7 @@ const STATUS_LABEL = { new: "New", preparing: "Preparing", ready: "Ready", done:
 const NEXT_LABEL = { new: "Start Preparing", preparing: "Mark Ready", ready: "Mark Done" };
 const emptyForm = { name: "", price: "", category: "meals", type: "veg", image: null, preview: null };
 
-export default function AdminPanel({ user, onBack, onLogout }) {
+export default function AdminPanel({ user, onBack }) {
   const [tab, setTab] = useState("orders");
   const [orders, setOrders] = useState([]);
   const [history, setHistory] = useState([]);
@@ -68,15 +68,9 @@ export default function AdminPanel({ user, onBack, onLogout }) {
       <div className="admin-bar">
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button className="back-btn" style={{ background: "rgba(255,255,255,0.08)", color: "white", borderColor: "rgba(255,255,255,0.15)" }} onClick={onBack}>‹</button>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button className="back-btn" style={{ background: "rgba(255,255,255,0.08)", color: "white", borderColor: "rgba(255,255,255,0.15)" }} onClick={onBack}>‹</button>
-            <div>
-              <div className="admin-logo"><span className="f">Foody</span><span className="b">Buddy</span></div>
-              <div className="admin-meta">Admin · {user.name}</div>
-            </div>
-            <button onClick={onLogout} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: "pointer", fontWeight: 600, marginLeft: 4 }}>
-              Logout
-            </button>
+          <div>
+            <div className="admin-logo"><span className="f">Foody</span><span className="b">Buddy</span></div>
+            <div className="admin-meta">Admin · {user.name}</div>
           </div>
         </div>
         <div className="live-indicator"><div className="live-dot" /> Live</div>
