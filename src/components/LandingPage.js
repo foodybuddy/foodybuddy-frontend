@@ -3,138 +3,170 @@ import { useEffect, useState } from "react";
 export default function LandingPage({ onLogin }) {
   const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    setTimeout(() => setVisible(true), 100);
-  }, []);
+  useEffect(() => { setTimeout(() => setVisible(true), 80); }, []);
 
   return (
-    <div style={{
-      background: "#1C1C1C", minHeight: "100vh",
-      display: "flex", flexDirection: "column",
-      justifyContent: "space-between", padding: "3.5rem 1.75rem 2.5rem",
-      position: "relative", overflow: "hidden"
-    }}>
-      <div style={{
-        position: "absolute", inset: 0, opacity: 0.04,
-        backgroundImage: "repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)",
-        backgroundSize: "20px 20px"
-      }} />
-      <div style={{
-        position: "absolute", width: 320, height: 320, borderRadius: "50%",
-        background: "#D94F00", opacity: 0.08, filter: "blur(80px)",
-        top: -100, right: -80, animation: "blob1 6s ease-in-out infinite"
-      }} />
-      <div style={{
-        position: "absolute", width: 200, height: 200, borderRadius: "50%",
-        background: "#D94F00", opacity: 0.05, filter: "blur(60px)",
-        bottom: 80, left: -60, animation: "blob2 8s ease-in-out infinite"
-      }} />
-      <div style={{
-        position: "absolute", width: 150, height: 150, borderRadius: "50%",
-        background: "#FF8C42", opacity: 0.06, filter: "blur(50px)",
-        top: "45%", right: 20, animation: "blob1 5s ease-in-out infinite reverse"
-      }} />
+    <div style={{ background: "#111", minHeight: "100vh", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
 
       <style>{`
-        @keyframes blob1 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50% { transform: translate(-20px,20px) scale(1.1); }
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap');
+
+        @keyframes rise { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        @keyframes shimmer { from { background-position:-200% 0; } to { background-position:200% 0; } }
+        @keyframes lineGrow { from { width:0; } to { width:100%; } }
+
+        .lp-root {
+          position: relative; z-index: 2; flex: 1;
+          display: flex; flex-direction: column;
+          padding: 2.5rem 2rem 2.5rem;
+          min-height: 100vh;
         }
-        @keyframes blob2 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50% { transform: translate(20px,-15px) scale(1.08); }
+
+        @media (min-width: 1024px) {
+          .lp-root { flex-direction: row; padding: 0; }
+          .lp-left {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center;
+            padding: 6rem 5rem 6rem 8rem;
+            border-right: 1px solid rgba(255,255,255,0.07);
+          }
+          .lp-right {
+            width: 360px; flex-shrink: 0;
+            display: flex !important; flex-direction: column;
+            justify-content: center; padding: 6rem 3.5rem;
+          }
+          .lp-cta-mobile { display: none !important; }
+          .lp-cta-desktop { display: block !important; }
         }
-        @keyframes fadeSlideUp {
-          from { opacity:0; transform:translateY(30px); }
-          to   { opacity:1; transform:translateY(0); }
+
+        @media (max-width: 1023px) {
+          .lp-left { width: 100%; }
+          .lp-right { display: none; }
+          .lp-cta-mobile { display: block; }
+          .lp-cta-desktop { display: none; }
         }
-        @keyframes fadeSlideUp2 {
-          from { opacity:0; transform:translateY(20px); }
-          to   { opacity:1; transform:translateY(0); }
+
+        .lp-cta-btn {
+          width: 100%; background: #D94F00; color: white;
+          border: none; border-radius: 4px; padding: 17px;
+          font-family: 'DM Sans', sans-serif; font-size: 15px;
+          font-weight: 500; cursor: pointer;
+          letter-spacing: 0.1em; text-transform: uppercase;
+          transition: background 0.2s, transform 0.15s;
+          position: relative; overflow: hidden;
         }
-        @keyframes pulse {
-          0%,100% { box-shadow: 0 0 0 0 rgba(217,79,0,0.4); }
-          50%      { box-shadow: 0 0 0 12px rgba(217,79,0,0); }
+        .lp-cta-btn:hover { background: #bf4400; }
+        .lp-cta-btn:active { transform: scale(0.99); }
+        .lp-cta-btn .shimmer-layer {
+          position: absolute; inset: 0;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+          background-size: 200% 100%;
+          animation: shimmer 3s infinite;
         }
-        @keyframes shimmer {
-          from { background-position: -200% 0; }
-          to   { background-position:  200% 0; }
+        .lp-nav-line {
+          width: 0; height: 1px;
+          background: rgba(255,255,255,0.12);
+          animation: lineGrow 1.2s ease 0.4s forwards;
         }
       `}</style>
 
-      {/* Top content */}
-      <div style={{ position: "relative", zIndex: 2 }}>
+      {/* Grain */}
+      <div style={{
+        position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
+        backgroundSize: "180px 180px", opacity: 0.4
+      }} />
 
-        {/* Brand name */}
-        <div style={{
-          fontSize: 46, fontWeight: 900, letterSpacing: "-1.5px",
-          marginBottom: "2rem", lineHeight: 1,
-          opacity: visible ? 1 : 0,
-          animation: visible ? "fadeSlideUp 0.6s ease 0.1s both" : "none"
-        }}>
-          <span style={{ color: "#D94F00" }}>Foody</span>
-          <span style={{ color: "white" }}>Buddy</span>
-        </div>
+      {/* Accent glow */}
+      <div style={{ position: "absolute", width: 500, height: 500, borderRadius: "50%", background: "#D94F00", opacity: 0.06, filter: "blur(120px)", top: -200, right: -100, pointerEvents: "none", zIndex: 1 }} />
 
-        {/* Heading */}
-        <div style={{
-          fontSize: 52, fontWeight: 900, lineHeight: 1.0,
-          color: "white", marginBottom: "1.25rem", letterSpacing: "-2px",
-          animation: visible ? "fadeSlideUp 0.6s ease 0.25s both" : "none",
-          opacity: visible ? 1 : 0,
-        }}>
-          The<br />
-          <span style={{ color: "#D94F00" }}>Smarter</span><br />
-          Way to<br />
-          Eat.
-        </div>
+      <div className="lp-root">
 
-        {/* Description */}
-        <p style={{
-          fontSize: 14, color: "rgba(255,255,255,0.45)",
-          lineHeight: 1.75, marginBottom: "3rem",
-          animation: visible ? "fadeSlideUp 0.6s ease 0.4s both" : "none",
-          opacity: visible ? 1 : 0,
-        }}>
-          Order from the canteen, pay online,<br />
-          and collect when it's ready — no queue.
-        </p>
+        {/* LEFT */}
+        <div className="lp-left" style={{ position: "relative", zIndex: 2 }}>
 
-      </div>
+          {/* Nav row */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "3.5rem", opacity: visible ? 1 : 0, animation: visible ? "fadeIn 0.5s ease 0.1s both" : "none" }}>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>
+              Karunya Institute of Technology and Sciences
+            </div>
+          </div>
 
-      {/* Bottom button */}
-      <div style={{ position: "relative", zIndex: 2 }}>
-        <button
-          onClick={onLogin}
-          style={{
-            width: "100%", background: "#D94F00", color: "white",
-            border: "none", borderRadius: 16, padding: "16px",
-            fontSize: 17, fontWeight: 700, cursor: "pointer",
-            letterSpacing: "0.02em", marginBottom: 12,
-            animation: visible ? "fadeSlideUp 0.6s ease 0.55s both, pulse 2.5s ease 1.5s infinite" : "none",
-            opacity: visible ? 1 : 0,
-            position: "relative", overflow: "hidden",
-          }}
-        >
-          <span style={{ position: "relative", zIndex: 1 }}>Get Started</span>
+          {/* Brand wordmark — BIG */}
           <div style={{
-            position: "absolute", inset: 0,
-            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)",
-            backgroundSize: "200% 100%",
-            animation: "shimmer 2.5s infinite"
-          }} />
-        </button>
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(42px, 5vw, 72px)",
+            fontWeight: 900,
+            letterSpacing: "-1px",
+            marginBottom: "1.5rem",
+            opacity: visible ? 1 : 0,
+            animation: visible ? "rise 0.7s ease 0.15s both" : "none"
+          }}>
+            <span style={{ color: "#D94F00" }}>Foody</span>
+            <span style={{ color: "white" }}>Buddy</span>
+          </div>
 
-        <p style={{
-          textAlign: "center", fontSize: 12,
-          color: "rgba(255,255,255,0.2)", fontWeight: 500,
-          animation: visible ? "fadeSlideUp 0.6s ease 0.65s both" : "none",
-          opacity: visible ? 1 : 0,
-        }}>
-          Login with your name and password
-        </p>
+          {/* Headline */}
+          <div style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(48px, 5.5vw, 82px)",
+            fontWeight: 750,
+            lineHeight: 0.90,
+            letterSpacing: "-2px",
+            color: "#fff",
+            marginBottom: "2rem",
+            opacity: visible ? 1 : 0,
+            animation: visible ? "rise 0.8s ease 0.25s both" : "none"
+          }}>
+            Eat<br />
+            <span style={{ fontStyle: "italic", color: "#D94F00" }}>Without</span><br />
+            Waiting.
+          </div>
+
+          {/* Thin rule */}
+          <div className="lp-nav-line" style={{ marginBottom: "1.75rem" }} />
+
+          {/* Tagline */}
+          <p style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: "clamp(14px, 1.1vw, 15px)",
+            fontWeight: 300,
+            color: "rgba(255,255,255,0.4)",
+            lineHeight: 1.8,
+            marginBottom: "3rem",
+            letterSpacing: "0.01em",
+            maxWidth: 360,
+            opacity: visible ? 1 : 0,
+            animation: visible ? "rise 0.7s ease 0.45s both" : "none"
+          }}>
+            Pre-order from the canteen. Pay instantly.<br />Collect when ready — zero queue.
+          </p>
+
+          {/* Mobile CTA */}
+          <div className="lp-cta-mobile" style={{ opacity: visible ? 1 : 0, animation: visible ? "rise 0.7s ease 0.55s both" : "none" }}>
+            <button className="lp-cta-btn" onClick={onLogin}>
+              <span style={{ position: "relative", zIndex: 1 }}>Get Started</span>
+              <div className="shimmer-layer" />
+            </button>
+          </div>
+
+        </div>
+
+        {/* RIGHT — desktop only */}
+        <div className="lp-right" style={{ position: "relative", zIndex: 2 }}>
+          <div className="lp-cta-desktop" style={{ opacity: visible ? 1 : 0, animation: visible ? "rise 0.7s ease 0.5s both" : "none" }}>
+            <button className="lp-cta-btn" onClick={onLogin} style={{ marginBottom: 14 }}>
+              <span style={{ position: "relative", zIndex: 1 }}>Get Started</span>
+              <div className="shimmer-layer" />
+            </button>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "rgba(255,255,255,0.18)", textAlign: "center", letterSpacing: "0.06em" }}>
+              USE YOUR NAME & PASSWORD TO SIGN IN
+            </p>
+          </div>
+        </div>
+
       </div>
-
     </div>
   );
 }
