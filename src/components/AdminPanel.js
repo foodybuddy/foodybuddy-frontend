@@ -60,6 +60,22 @@ export default function AdminPanel({ user, onBack }) {
   };
   const cancelOrder = async (id) => { await fetch(`${API}/admin/orders/${id}/cancel`, { method: "POST" }); fetchOrders(); };
 
+  const [clearing, setClearing] = useState(false);
+
+  const clearHistory = async () => {
+    if (!window.confirm("Clear all completed orders and reset today's revenue? This cannot be undone.")) return;
+    setClearing(true);
+    try {
+      const res = await fetch(`${API}/admin/clear-history`, { method: "POST" });
+      const data = await res.json();
+      if (data.status === "cleared") {
+        setHistory([]);
+        showToast(`Cleared ${data.deleted} completed order${data.deleted !== 1 ? "s" : ""}`);
+      }
+    } catch { alert("Something went wrong"); }
+    setClearing(false);
+  };
+
   const live = orders.filter(o => o.status !== "done");
   const revenue = history.reduce((s, o) => s + o.total, 0);
 
@@ -116,9 +132,25 @@ export default function AdminPanel({ user, onBack }) {
           ))
         )}
 
-        {tab === "history" && (history.length === 0
-          ? <div className="empty">No completed orders yet</div>
-          : history.map(o => (
+        {tab === "history" && (
+          <div>
+            {history.length > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, padding: "10px 14px", background: "#FEF2F2", borderRadius: 10, border: "1px solid #FECACA" }}>
+                <div style={{ fontSize: 13, color: "#991B1B", fontWeight: 600 }}>
+                  {history.length} completed · ₹{revenue} total revenue
+                </div>
+                <button
+                  onClick={clearHistory}
+                  disabled={clearing}
+                  style={{ fontSize: 12, padding: "7px 14px", borderRadius: 8, background: "white", color: "#991B1B", border: "1px solid #FECACA", cursor: "pointer", fontWeight: 700, opacity: clearing ? 0.6 : 1 }}
+                >
+                  {clearing ? "Clearing..." : "🗑 Clear History"}
+                </button>
+              </div>
+            )}
+            {history.length === 0
+              ? <div className="empty">No completed orders yet</div>
+              : history.map(o => (
             <div className="order-card" key={o.order_id}>
               <div className="order-top">
                 <div><div className="order-id">{o.order_id}</div><div className="order-meta">{o.name}</div></div>
@@ -127,7 +159,8 @@ export default function AdminPanel({ user, onBack }) {
               <div className="order-items-txt">{o.items.map(i => `${i.name} ×${i.qty}`).join(" · ")}</div>
               <div className="order-bottom"><div className="order-total">₹{o.total}</div></div>
             </div>
-          ))
+          ))}
+          </div>
         )}
 
         {tab === "menu" && (
