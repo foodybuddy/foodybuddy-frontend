@@ -3,16 +3,17 @@ import { useState, useEffect } from "react";
 const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
 const STATUS_LABEL = { new: "New", preparing: "Preparing", ready: "Ready", done: "Done" };
 const STATUS_COLOR = {
-  new: { bg: "#FEF2F2", color: "#991B1B" },
+  new:       { bg: "#FEF2F2", color: "#991B1B" },
   preparing: { bg: "#FFFBEB", color: "#92400E" },
-  ready: { bg: "#ECFDF5", color: "#065F46" },
-  done: { bg: "#F5F0EB", color: "#6B6B6B" },
+  ready:     { bg: "#ECFDF5", color: "#065F46" },
+  done:      { bg: "#F5F0EB", color: "#6B6B6B" },
 };
 
-export default function OrderHistory({ user, onBack }) {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function OrderHistory({ user, onBack, onReorder }) {
+  const [orders,     setOrders]     = useState([]);
+  const [loading,    setLoading]    = useState(true);
   const [cancelling, setCancelling] = useState(null);
+  const [reordered,  setReordered]  = useState(null);
 
   useEffect(() => {
     fetch(`${API}/orders/history/${user.phone}`)
@@ -25,17 +26,20 @@ export default function OrderHistory({ user, onBack }) {
     if (!window.confirm("Cancel this order?")) return;
     setCancelling(orderId);
     try {
-      const res = await fetch(`${API}/orders/${orderId}/cancel`, { method: "POST" });
+      const res  = await fetch(`${API}/orders/${orderId}/cancel`, { method: "POST" });
       const data = await res.json();
-      if (data.status === "cancelled") {
-        setOrders(orders.filter(o => o.order_id !== orderId));
-      } else {
-        alert(data.error || "Cannot cancel this order");
-      }
-    } catch {
-      alert("Something went wrong");
-    }
+      if (data.status === "cancelled") setOrders(orders.filter(o => o.order_id !== orderId));
+      else alert(data.error || "Cannot cancel this order");
+    } catch { alert("Something went wrong"); }
     setCancelling(null);
+  };
+
+  const handleReorder = (order) => {
+    if (onReorder) {
+      onReorder(order.items);
+      setReordered(order.order_id);
+      setTimeout(() => { onBack(); }, 800);
+    }
   };
 
   return (
@@ -61,10 +65,8 @@ export default function OrderHistory({ user, onBack }) {
         )}
 
         {orders.map(order => (
-          <div key={order.order_id} style={{
-            border: "1px solid var(--bd)", borderRadius: 12,
-            padding: 14, marginBottom: 12, background: "white"
-          }}>
+          <div key={order.order_id} style={{ border: "1px solid var(--bd)", borderRadius: 12, padding: 14, marginBottom: 12, background: "white" }}>
+
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
               <div>
                 <div style={{ fontFamily: "'Fraunces',serif", fontSize: 15, fontWeight: 700, color: "var(--dark)" }}>
@@ -80,12 +82,7 @@ export default function OrderHistory({ user, onBack }) {
                   {new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                 </div>
               </div>
-              <div style={{
-                fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 20,
-                background: STATUS_COLOR[order.status]?.bg || "#F5F0EB",
-                color: STATUS_COLOR[order.status]?.color || "#6B6B6B",
-                textTransform: "uppercase", letterSpacing: "0.04em"
-              }}>
+              <div style={{ fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 20, background: STATUS_COLOR[order.status]?.bg || "#F5F0EB", color: STATUS_COLOR[order.status]?.color || "#6B6B6B", textTransform: "uppercase", letterSpacing: "0.04em" }}>
                 {STATUS_LABEL[order.status] || order.status}
               </div>
             </div>
@@ -98,18 +95,26 @@ export default function OrderHistory({ user, onBack }) {
               <div style={{ fontFamily: "'Fraunces',serif", fontSize: 16, fontWeight: 700, color: "var(--or)" }}>
                 ₹{order.total}
               </div>
-              {order.status === "new" && (
+              <div style={{ display: "flex", gap: 8 }}>
+                {/* Reorder button */}
                 <button
-                  onClick={() => cancelOrder(order.order_id)}
-                  disabled={cancelling === order.order_id}
-                  style={{
-                    fontSize: 12, padding: "7px 14px", borderRadius: 8,
-                    background: "white", color: "#991B1B",
-                    border: "1px solid #FECACA", cursor: "pointer", fontWeight: 600
-                  }}>
-                  {cancelling === order.order_id ? "Cancelling..." : "Cancel Order"}
+                  onClick={() => handleReorder(order)}
+                  disabled={reordered === order.order_id}
+                  style={{ fontSize: 12, padding: "7px 12px", borderRadius: 8, background: reordered === order.order_id ? "#ECFDF5" : "var(--primary)", color: reordered === order.order_id ? "#065F46" : "white", border: "none", cursor: "pointer", fontWeight: 600, transition: "all 0.2s" }}
+                >
+                  {reordered === order.order_id ? "✓ Added!" : "↺ Reorder"}
                 </button>
-              )}
+
+                {order.status === "new" && (
+                  <button
+                    onClick={() => cancelOrder(order.order_id)}
+                    disabled={cancelling === order.order_id}
+                    style={{ fontSize: 12, padding: "7px 12px", borderRadius: 8, background: "white", color: "#991B1B", border: "1px solid #FECACA", cursor: "pointer", fontWeight: 600 }}
+                  >
+                    {cancelling === order.order_id ? "Cancelling..." : "Cancel"}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ))}
