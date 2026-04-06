@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function SuccessScreen({ orderData, onNewOrder }) {
+export default function SuccessScreen({ orderData, onNewOrder, onTrack }) {
   const [dots, setDots] = useState([]);
 
   useEffect(() => {
@@ -12,6 +12,37 @@ export default function SuccessScreen({ orderData, onNewOrder }) {
       size: Math.random() * 7 + 5,
     })));
   }, []);
+
+  const handleDownload = () => {
+    const date = new Date().toLocaleString("en-IN", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
+    const itemLines = orderData.items.map(i => `  ${i.name} x${i.qty}  ₹${i.price * i.qty}`).join("\n");
+    const receipt = [
+      "=============================",
+      "        FOODYBUDDY",
+      "   Karunya Canteen Receipt",
+      "=============================",
+      `Date     : ${date}`,
+      `Order ID : ${orderData.razorpay_order_id}`,
+      `Name     : ${orderData.name}`,
+      `Type     : ${orderData.tokenType}`,
+      "-----------------------------",
+      "ITEMS:",
+      itemLines,
+      "-----------------------------",
+      `TOTAL    : ₹${orderData.total}`,
+      "=============================",
+      "   Thank you for ordering!",
+      "=============================",
+    ].join("\n");
+
+    const blob = new Blob([receipt], { type: "text/plain" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `foodybuddy-receipt-${orderData.razorpay_order_id}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="success-wrap">
@@ -44,19 +75,28 @@ export default function SuccessScreen({ orderData, onNewOrder }) {
         </div>
       </div>
 
-      <div className="step-list">
-        <div className="step"><div className="step-dot done" /><div className="step-lbl">Payment confirmed</div></div>
-        <div className="step"><div className="step-dot active" /><div className="step-lbl">Order sent to canteen</div></div>
-        <div className="step"><div className="step-dot pending" /><div className="step-lbl pending">Preparing your order</div></div>
-        <div className="step"><div className="step-dot pending" /><div className="step-lbl pending">Ready for collection</div></div>
-      </div>
-
       <div className="wa-row">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A7F4B" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 01.18 1.18 2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.26 6.26l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
         <div className="wa-txt">Confirmation sent to +91 {orderData.phone}</div>
       </div>
 
-      <button className="btn-secondary" style={{ color:"rgba(255,255,255,0.6)", borderColor:"rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)" }} onClick={onNewOrder}>
+      {/* Track Order button */}
+      <button
+        onClick={onTrack}
+        style={{ width:"100%", background:"#D94F00", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:15, fontWeight:700, cursor:"pointer", marginBottom:10 }}
+      >
+        Track My Order
+      </button>
+
+      {/* Download Receipt button */}
+      <button
+        onClick={handleDownload}
+        style={{ width:"100%", background:"transparent", color:"rgba(255,255,255,0.55)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:12, padding:"13px", fontSize:14, fontWeight:500, cursor:"pointer", marginBottom:10 }}
+      >
+        ↓ Download Receipt
+      </button>
+
+      <button className="btn-secondary" style={{ color:"rgba(255,255,255,0.4)", borderColor:"rgba(255,255,255,0.1)", background:"transparent" }} onClick={onNewOrder}>
         Place Another Order
       </button>
     </div>
