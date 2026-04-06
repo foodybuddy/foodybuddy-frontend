@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
 const CATS = ["meals", "snacks", "drinks"];
@@ -17,12 +17,41 @@ export default function AdminPanel({ user, onBack }) {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState("");
 
-  const fetchOrders = () => fetch(`${API}/admin/orders`).then(r => r.json()).then(setOrders).catch(() => { });
-  const fetchHistory = () => fetch(`${API}/admin/history`).then(r => r.json()).then(setHistory).catch(() => { });
-  const fetchMenu = () => fetch(`${API}/admin/menu`).then(r => r.json()).then(setMenuItems).catch(() => { });
+  const prevOrderCount = useRef(null);
 
-  useEffect(() => { fetchOrders(); const iv = setInterval(fetchOrders, 10000); return () => clearInterval(iv); }, []);
-  useEffect(() => { if (tab === "history") fetchHistory(); if (tab === "menu") fetchMenu(); }, [tab]);
+  const playAlert = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 120, 240].forEach(delay => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        osc.type = "sine";
+        gain.gain.setValueAtTime(0, ctx.currentTime + delay / 1000);
+        gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + delay / 1000 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay / 1000 + 0.25);
+        osc.start(ctx.currentTime + delay / 1000);
+        osc.stop(ctx.currentTime + delay / 1000 + 0.3);
+      });
+    } catch {}
+  };
+
+  const fetchOrders = useCallback(() => fetch(`${API}/admin/orders`).then(r => r.json()).then(data => {
+    const newCount = data.filter(o => o.status === "new").length;
+    if (prevOrderCount.current !== null && newCount > prevOrderCount.current) playAlert();
+    prevOrderCount.current = newCount;
+    setOrders(data);
+  }).catch(() => { }), []);
+  const fetchHistory = useCallback(() => fetch(`${API}/admin/history`).then(r => r.json()).then(setHistory).catch(() => { }), []);
+  const fetchMenu = useCallback(() => fetch(`${API}/admin/menu`).then(r => r.json()).then(setMenuItems).catch(() => { }), []);
+
+  useEffect(() => { 
+    fetchOrders(); 
+    const iv = setInterval(fetchOrders, 10000); 
+    return () => clearInterval(iv); 
+  }, [fetchOrders]);
+  useEffect(() => { if (tab === "history") fetchHistory(); if (tab === "menu") fetchMenu(); }, [tab, fetchHistory, fetchMenu]);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
