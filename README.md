@@ -84,4 +84,4 @@ Students receive WhatsApp messages at two points:
 
 ## Deployed At
 
-[foofybuddy.shop](https://foodybuddy.shop)
+[foodybuddy.shop](https://foodybuddy.shop)
