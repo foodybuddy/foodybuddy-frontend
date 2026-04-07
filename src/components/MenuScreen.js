@@ -2,28 +2,85 @@ import { useState, useEffect } from "react";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
 const CATS = [
-  { key: "all", label: "All" },
-  { key: "shawarma", label: "Shawarma" },
-  { key: "hotdog", label: "Hot Dog" },
-  { key: "sub", label: "Sub" },
-  { key: "toast", label: "Toast" },
-  { key: "salad", label: "Salad" },
-  { key: "mojito", label: "Mojito" },
+  { key: "all",        label: "All" },
+  { key: "shawarma",   label: "Shawarma" },
+  { key: "hotdog",     label: "Hot Dog" },
+  { key: "sub",        label: "Sub" },
+  { key: "toast",      label: "Toast" },
+  { key: "salad",      label: "Salad" },
+  { key: "mojito",     label: "Mojito" },
   { key: "milkshakes", label: "Milk Shakes" },
-  { key: "desserts", label: "Desserts" },
-  { key: "pizza", label: "Pizza" },
-  { key: "burger", label: "Burger" },
-  { key: "sandwich", label: "Sandwich" },
-  { key: "starters", label: "Starters" },
+  { key: "desserts",   label: "Desserts" },
+  { key: "pizza",      label: "Pizza" },
+  { key: "burger",     label: "Burger" },
+  { key: "sandwich",   label: "Sandwich" },
+  { key: "starters",   label: "Starters" },
   { key: "freshjuice", label: "Fresh Juice" },
-  { key: "pasta", label: "Pasta" },
+  { key: "pasta",      label: "Pasta" },
 ];
 
-export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, removeItem, onCartClick, onAdminClick, onLogout, onProfileClick }) {
-  const [cat, setCat] = useState("all");
-  const [search, setSearch] = useState("");
-  const [menu, setMenu] = useState([]);
-  const [loading, setLoading] = useState(true);
+function AddonModal({ item, onConfirm, onClose }) {
+  const [selected, setSelected] = useState([]);
+
+  const toggle = (addon) => {
+    setSelected(prev =>
+      prev.find(a => a.id === addon.id)
+        ? prev.filter(a => a.id !== addon.id)
+        : [...prev, addon]
+    );
+  };
+
+  const totalExtra = selected.reduce((s, a) => s + a.price, 0);
+
+  return (
+    <div className="addon-overlay" onClick={onClose}>
+      <div className="addon-modal" onClick={e => e.stopPropagation()}>
+        <div className="addon-modal-header">
+          <div className="addon-modal-title">{item.name}</div>
+          <button className="addon-modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="addon-modal-sub">Customise your order (optional)</div>
+        <div className="addon-list">
+          {item.addons.map(addon => {
+            const active = !!selected.find(a => a.id === addon.id);
+            return (
+              <div
+                key={addon.id}
+                className={`addon-row ${active ? "active" : ""}`}
+                onClick={() => toggle(addon)}
+              >
+                <div className="addon-check">{active ? "✓" : ""}</div>
+                <div className="addon-row-name">{addon.name}</div>
+                {addon.price > 0 && (
+                  <div className="addon-row-price">+₹{addon.price}</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <button
+          className="btn-primary"
+          style={{ marginTop: 16 }}
+          onClick={() => onConfirm(item, selected)}
+        >
+          Add to Cart
+          {totalExtra > 0 && <span style={{ opacity: 0.8, fontSize: 13, marginLeft: 6 }}>· ₹{item.price + totalExtra}</span>}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function MenuScreen({
+  user, cart, cartCount, cartTotal,
+  addItem, removeItem,
+  onCartClick, onAdminClick, onLogout, onProfileClick
+}) {
+  const [cat,      setCat]      = useState("all");
+  const [search,   setSearch]   = useState("");
+  const [menu,     setMenu]     = useState([]);
+  const [loading,  setLoading]  = useState(true);
+  const [addonFor, setAddonFor] = useState(null);
 
   useEffect(() => {
     fetch(`${API}/menu`)
@@ -39,6 +96,19 @@ export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, 
 
   const initials = user.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 
+  const handleAddClick = (item) => {
+    if (item.addons && item.addons.length > 0) {
+      setAddonFor(item);
+    } else {
+      addItem(item, []);
+    }
+  };
+
+  const handleAddonConfirm = (item, selectedAddons) => {
+    addItem(item, selectedAddons);
+    setAddonFor(null);
+  };
+
   return (
     <div>
       <div className="header">
@@ -48,20 +118,14 @@ export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, 
             <div className="logo-sub">Karunya Canteen</div>
           </div>
           <div className="header-actions">
-
-            {/* Profile avatar button */}
             <div onClick={onProfileClick} title="My Profile" style={{ width: 38, height: 38, borderRadius: "50%", background: "#D94F00", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <span style={{ fontFamily: "serif", fontSize: 14, fontWeight: 900, color: "white", lineHeight: 1 }}>{initials}</span>
             </div>
-
-            {/* Admin button */}
             {user.role === "admin" && (
               <button className="icon-btn" onClick={onAdminClick} title="Admin Panel">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--dark)" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
               </button>
             )}
-
-            {/* Cart button */}
             <button className="icon-btn filled" onClick={onCartClick} style={{ position: "relative" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" /></svg>
               {cartCount > 0 && <div className="cart-badge">{cartCount}</div>}
@@ -93,6 +157,7 @@ export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, 
         {!loading && filtered.length === 0 && (
           <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "2rem", color: "var(--mid)" }}>No items found</div>
         )}
+
         {filtered.map((item, idx) => {
           const qty = cart[item.id]?.qty || 0;
           return (
@@ -105,18 +170,25 @@ export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, 
               </div>
               <div className="item-info">
                 <div className="item-name">{item.name}</div>
+
                 <div className="item-bottom">
                   <div>
                     <div className="item-price">₹{item.price}</div>
                     <span className={`tag ${item.type}`}>{item.type === "veg" ? "Veg" : "Non-veg"}</span>
                   </div>
                   {qty === 0
-                    ? <button className="add-btn" onClick={() => addItem(item)}>+</button>
-                    : <div className="qty-ctrl">
-                      <button onClick={() => removeItem(item.id)}>−</button>
-                      <span>{qty}</span>
-                      <button onClick={() => addItem(item)}>+</button>
-                    </div>
+                    ? (
+                      <button className="add-btn" onClick={() => handleAddClick(item)}>
+                        +
+                      </button>
+                    )
+                    : (
+                      <div className="qty-ctrl">
+                        <button onClick={() => removeItem(item.id)}>−</button>
+                        <span>{qty}</span>
+                        <button onClick={() => handleAddClick(item)}>+</button>
+                      </div>
+                    )
                   }
                 </div>
               </div>
@@ -137,6 +209,14 @@ export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, 
             <div className="cart-bar-cta">View Cart</div>
           </div>
         </div>
+      )}
+
+      {addonFor && (
+        <AddonModal
+          item={addonFor}
+          onConfirm={handleAddonConfirm}
+          onClose={() => setAddonFor(null)}
+        />
       )}
     </div>
   );
