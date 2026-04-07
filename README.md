@@ -84,4 +84,4 @@ Students receive WhatsApp messages at two points:
 
 ## Deployed At
 
-[foodybuddy-frontend.vercel.app](https://foodybuddykarunya.vercel.app)
+[foofybuddy.shop](https://foodybuddy.shop)
