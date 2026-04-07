@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
-const CATS = ["meals", "snacks", "drinks"];
+const CATS = ["meals", "snacks", "drinks", "shawarma", "hotdog", "sub", "toast", "salad", "mojito", "milkshakes", "desserts", "pizza", "burger", "sandwich", "starters", "freshjuice", "pasta"];
 const STATUS_FLOW = ["new", "preparing", "ready", "done"];
 const STATUS_LABEL = { new: "New", preparing: "Preparing", ready: "Ready", done: "Done" };
 const NEXT_LABEL = { new: "Start Preparing", preparing: "Mark Ready", ready: "Mark Done" };
