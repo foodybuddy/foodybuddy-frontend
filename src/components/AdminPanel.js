@@ -270,8 +270,7 @@ export default function AdminPanel({ user, onBack }) {
               {/* ── ADDONS SECTION ── */}
               <div style={{ marginBottom: 16 }}>
                 <label className="field-label" style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                  <span>🧀</span> Addons / Extras
-                  <span style={{ fontSize: 11, color: "#9E9E9E", fontWeight: 400 }}>(optional – e.g. Extra Cheese, Sauce)</span>
+                   Addons / Extras
                 </label>
 
                 {/* Existing addon rows */}
