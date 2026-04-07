@@ -3,10 +3,20 @@ import { useState, useEffect } from "react";
 const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
 const CATS = [
   { key: "all", label: "All" },
-  { key: "meals", label: "Meals" },
-  { key: "snacks", label: "Snacks" },
-  { key: "drinks", label: "Drinks" },
-  { key: "breakfast", label: "Breakfast" },
+  { key: "shawarma", label: "Shawarma" },
+  { key: "hotdog", label: "Hot Dog" },
+  { key: "sub", label: "Sub" },
+  { key: "toast", label: "Toast" },
+  { key: "salad", label: "Salad" },
+  { key: "mojito", label: "Mojito" },
+  { key: "milkshakes", label: "Milk Shakes" },
+  { key: "desserts", label: "Desserts" },
+  { key: "pizza", label: "Pizza" },
+  { key: "burger", label: "Burger" },
+  { key: "sandwich", label: "Sandwich" },
+  { key: "starters", label: "Starters" },
+  { key: "freshjuice", label: "Fresh Juice" },
+  { key: "pasta", label: "Pasta" },
 ];
 
 export default function MenuScreen({ user, cart, cartCount, cartTotal, addItem, removeItem, onCartClick, onAdminClick, onLogout, onProfileClick }) {
