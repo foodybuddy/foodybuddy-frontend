@@ -34,8 +34,24 @@ export default function App() {
 
   const handleUserUpdate = (updated) => { setUser(updated); };
 
-  const addItem = (item) =>
-    setCart(c => ({ ...c, [item.id]: { ...item, qty: (c[item.id]?.qty || 0) + 1 } }));
+  /**
+   * addItem now accepts selectedAddons (array of {id, name, price}).
+   * Cart key is still item.id — each unique item replaces its entry
+   * and keeps the latest addon selection (same behaviour as before for qty).
+   */
+  const addItem = (item, selectedAddons = []) => {
+    setCart(c => {
+      const prev = c[item.id];
+      return {
+        ...c,
+        [item.id]: {
+          ...item,
+          selectedAddons,
+          qty: (prev?.qty || 0) + 1,
+        },
+      };
+    });
+  };
 
   const removeItem = (id) =>
     setCart(c => {
@@ -45,17 +61,22 @@ export default function App() {
       return u;
     });
 
-  // Reorder: load items from history back into cart
   const handleReorder = (items) => {
     const newCart = {};
     items.forEach(item => {
-      newCart[item.id] = { ...item, qty: item.qty };
+      newCart[item.id] = { ...item, selectedAddons: item.selectedAddons || [], qty: item.qty };
     });
     setCart(newCart);
   };
 
   const cartItems = Object.values(cart);
-  const cartTotal = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
+
+  // Total includes base price + addon prices per item × qty
+  const cartTotal = cartItems.reduce((s, i) => {
+    const addonsPrice = (i.selectedAddons || []).reduce((a, ad) => a + ad.price, 0);
+    return s + (i.price + addonsPrice) * i.qty;
+  }, 0);
+
   const cartCount = cartItems.reduce((s, i) => s + i.qty, 0);
   const resetOrder = () => { setCart({}); setOrderData(null); setScreen("menu"); };
 
