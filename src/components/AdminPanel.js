@@ -5,7 +5,8 @@ const CATS = ["meals", "snacks", "drinks", "shawarma", "hotdog", "sub", "toast",
 const STATUS_FLOW = ["new", "preparing", "ready", "done"];
 const STATUS_LABEL = { new: "New", preparing: "Preparing", ready: "Ready", done: "Done" };
 const NEXT_LABEL = { new: "Start Preparing", preparing: "Mark Ready", ready: "Mark Done" };
-const emptyForm = { name: "", price: "", category: "meals", type: "veg", image: null, preview: null };
+const emptyAddon = { name: "", price: "" };
+const emptyForm = { name: "", price: "", category: "meals", type: "veg", image: null, preview: null, addons: [] };
 
 export default function AdminPanel({ user, onBack }) {
   const [tab, setTab] = useState("orders");
@@ -16,6 +17,8 @@ export default function AdminPanel({ user, onBack }) {
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState("");
+  const [newAddon, setNewAddon] = useState(emptyAddon);
+  const [clearing, setClearing] = useState(false);
 
   const prevOrderCount = useRef(null);
 
@@ -42,16 +45,21 @@ export default function AdminPanel({ user, onBack }) {
     if (prevOrderCount.current !== null && newCount > prevOrderCount.current) playAlert();
     prevOrderCount.current = newCount;
     setOrders(data);
-  }).catch(() => { }), []);
-  const fetchHistory = useCallback(() => fetch(`${API}/admin/history`).then(r => r.json()).then(setHistory).catch(() => { }), []);
-  const fetchMenu = useCallback(() => fetch(`${API}/admin/menu`).then(r => r.json()).then(setMenuItems).catch(() => { }), []);
+  }).catch(() => {}), []);
 
-  useEffect(() => { 
-    fetchOrders(); 
-    const iv = setInterval(fetchOrders, 10000); 
-    return () => clearInterval(iv); 
+  const fetchHistory = useCallback(() => fetch(`${API}/admin/history`).then(r => r.json()).then(setHistory).catch(() => {}), []);
+  const fetchMenu = useCallback(() => fetch(`${API}/admin/menu`).then(r => r.json()).then(setMenuItems).catch(() => {}), []);
+
+  useEffect(() => {
+    fetchOrders();
+    const iv = setInterval(fetchOrders, 10000);
+    return () => clearInterval(iv);
   }, [fetchOrders]);
-  useEffect(() => { if (tab === "history") fetchHistory(); if (tab === "menu") fetchMenu(); }, [tab, fetchHistory, fetchMenu]);
+
+  useEffect(() => {
+    if (tab === "history") fetchHistory();
+    if (tab === "menu") fetchMenu();
+  }, [tab, fetchHistory, fetchMenu]);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -61,9 +69,31 @@ export default function AdminPanel({ user, onBack }) {
     setForm(f => ({ ...f, image: file, preview: URL.createObjectURL(file) }));
   };
 
+  // ── addon helpers ──────────────────────────────────────────────────────────
+  const addAddonRow = () => {
+    const name = newAddon.name.trim();
+    if (!name) return;
+    setForm(f => ({ ...f, addons: [...f.addons, { name, price: parseInt(newAddon.price) || 0 }] }));
+    setNewAddon(emptyAddon);
+  };
+
+  const removeAddonRow = (idx) => {
+    setForm(f => ({ ...f, addons: f.addons.filter((_, i) => i !== idx) }));
+  };
+
+  // ── edit/submit ────────────────────────────────────────────────────────────
   const startEdit = (item) => {
     setEditId(item.id);
-    setForm({ name: item.name, price: item.price, category: item.category, type: item.type, image: null, preview: item.image_url });
+    setForm({
+      name: item.name,
+      price: item.price,
+      category: item.category,
+      type: item.type,
+      image: null,
+      preview: item.image_url,
+      addons: (item.addons || []).map(a => ({ name: a.name, price: a.price })),
+    });
+    setNewAddon(emptyAddon);
     window.scrollTo(0, 0);
   };
 
@@ -72,24 +102,24 @@ export default function AdminPanel({ user, onBack }) {
     setLoading(true);
     const fd = new FormData();
     ["name", "price", "category", "type"].forEach(k => fd.append(k, form[k]));
+    fd.append("addons", JSON.stringify(form.addons));
     if (form.image) fd.append("image", form.image);
     const url = editId ? `${API}/admin/menu/${editId}` : `${API}/admin/menu`;
     const method = editId ? "PUT" : "POST";
     await fetch(url, { method, body: fd });
-    setLoading(false); setEditId(null); setForm(emptyForm);
+    setLoading(false); setEditId(null); setForm(emptyForm); setNewAddon(emptyAddon);
     fetchMenu(); showToast(editId ? "Item updated" : "Item added to menu");
   };
 
   const toggleItem = async (id) => { await fetch(`${API}/admin/menu/${id}/toggle`, { method: "PATCH" }); fetchMenu(); };
   const deleteItem = async (id) => { if (!window.confirm("Delete this item?")) return; await fetch(`${API}/admin/menu/${id}`, { method: "DELETE" }); fetchMenu(); showToast("Item removed"); };
+
   const advanceOrder = async (orderId, status) => {
     const next = STATUS_FLOW[STATUS_FLOW.indexOf(status) + 1];
     await fetch(`${API}/admin/orders/${orderId}/status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: next }) });
     fetchOrders();
   };
   const cancelOrder = async (id) => { await fetch(`${API}/admin/orders/${id}/cancel`, { method: "POST" }); fetchOrders(); };
-
-  const [clearing, setClearing] = useState(false);
 
   const clearHistory = async () => {
     if (!window.confirm("Clear all completed orders and reset today's revenue? This cannot be undone.")) return;
@@ -138,6 +168,7 @@ export default function AdminPanel({ user, onBack }) {
 
       <div style={{ padding: "0.75rem 1.25rem" }}>
 
+        {/* ── ORDERS ── */}
         {tab === "orders" && (live.length === 0
           ? <div className="empty">No active orders</div>
           : live.map(o => (
@@ -161,6 +192,7 @@ export default function AdminPanel({ user, onBack }) {
           ))
         )}
 
+        {/* ── HISTORY ── */}
         {tab === "history" && (
           <div>
             {history.length > 0 && (
@@ -168,11 +200,7 @@ export default function AdminPanel({ user, onBack }) {
                 <div style={{ fontSize: 13, color: "#991B1B", fontWeight: 600 }}>
                   {history.length} completed · ₹{revenue} total revenue
                 </div>
-                <button
-                  onClick={clearHistory}
-                  disabled={clearing}
-                  style={{ fontSize: 12, padding: "7px 14px", borderRadius: 8, background: "white", color: "#991B1B", border: "1px solid #FECACA", cursor: "pointer", fontWeight: 700, opacity: clearing ? 0.6 : 1 }}
-                >
+                <button onClick={clearHistory} disabled={clearing} style={{ fontSize: 12, padding: "7px 14px", borderRadius: 8, background: "white", color: "#991B1B", border: "1px solid #FECACA", cursor: "pointer", fontWeight: 700, opacity: clearing ? 0.6 : 1 }}>
                   {clearing ? "Clearing..." : "🗑 Clear History"}
                 </button>
               </div>
@@ -180,22 +208,25 @@ export default function AdminPanel({ user, onBack }) {
             {history.length === 0
               ? <div className="empty">No completed orders yet</div>
               : history.map(o => (
-            <div className="order-card" key={o.order_id}>
-              <div className="order-top">
-                <div><div className="order-id">{o.order_id}</div><div className="order-meta">{o.name}</div></div>
-                <div className="status-pill sp-done">Done</div>
+              <div className="order-card" key={o.order_id}>
+                <div className="order-top">
+                  <div><div className="order-id">{o.order_id}</div><div className="order-meta">{o.name}</div></div>
+                  <div className="status-pill sp-done">Done</div>
+                </div>
+                <div className="order-items-txt">{o.items.map(i => `${i.name} ×${i.qty}`).join(" · ")}</div>
+                <div className="order-bottom"><div className="order-total">₹{o.total}</div></div>
               </div>
-              <div className="order-items-txt">{o.items.map(i => `${i.name} ×${i.qty}`).join(" · ")}</div>
-              <div className="order-bottom"><div className="order-total">₹{o.total}</div></div>
-            </div>
-          ))}
+            ))}
           </div>
         )}
 
+        {/* ── MENU ── */}
         {tab === "menu" && (
           <div>
             <div className="menu-form">
               <div className="menu-form-ttl">{editId ? "Edit Item" : "Add New Item"}</div>
+
+              {/* Image upload */}
               <label className="img-upload">
                 <input type="file" accept="image/*" onChange={handleImage} style={{ display: "none" }} />
                 {form.preview
@@ -207,14 +238,19 @@ export default function AdminPanel({ user, onBack }) {
                 }
               </label>
 
+              {/* Name */}
               <div className="field">
                 <label className="field-label">Item Name</label>
                 <input className="field-input" placeholder="e.g. Chicken Biryani" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
               </div>
+
+              {/* Price */}
               <div className="field">
                 <label className="field-label">Price (₹)</label>
                 <input className="field-input" type="number" placeholder="e.g. 80" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
               </div>
+
+              {/* Category + Type */}
               <div className="two-col" style={{ marginBottom: 16 }}>
                 <div className="field" style={{ marginBottom: 0 }}>
                   <label className="field-label">Category</label>
@@ -230,12 +266,84 @@ export default function AdminPanel({ user, onBack }) {
                   </select>
                 </div>
               </div>
+
+              {/* ── ADDONS SECTION ── */}
+              <div style={{ marginBottom: 16 }}>
+                <label className="field-label" style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                  <span>🧀</span> Addons / Extras
+                  <span style={{ fontSize: 11, color: "#9E9E9E", fontWeight: 400 }}>(optional – e.g. Extra Cheese, Sauce)</span>
+                </label>
+
+                {/* Existing addon rows */}
+                {form.addons.length > 0 && (
+                  <div style={{ marginBottom: 8, display: "flex", flexDirection: "column", gap: 6 }}>
+                    {form.addons.map((addon, idx) => (
+                      <div key={idx} style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFF8F3", border: "1px solid #FFE0CC", borderRadius: 8, padding: "8px 10px" }}>
+                        <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#333" }}>{addon.name}</span>
+                        <span style={{ fontSize: 13, color: "#D94F00", fontWeight: 700, minWidth: 48, textAlign: "right" }}>
+                          {addon.price > 0 ? `+₹${addon.price}` : "Free"}
+                        </span>
+                        <button
+                          onClick={() => removeAddonRow(idx)}
+                          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#BDBDBD", lineHeight: 1, padding: "0 2px" }}
+                          title="Remove addon"
+                        >×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* New addon input row */}
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <input
+                    className="field-input"
+                    style={{ flex: 2, marginBottom: 0 }}
+                    placeholder="Addon name (e.g. Extra Cheese)"
+                    value={newAddon.name}
+                    onChange={e => setNewAddon(a => ({ ...a, name: e.target.value }))}
+                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addAddonRow(); } }}
+                  />
+                  <input
+                    className="field-input"
+                    style={{ flex: 1, marginBottom: 0 }}
+                    type="number"
+                    placeholder="Price (₹)"
+                    value={newAddon.price}
+                    onChange={e => setNewAddon(a => ({ ...a, price: e.target.value }))}
+                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addAddonRow(); } }}
+                    min="0"
+                  />
+                  <button
+                    onClick={addAddonRow}
+                    disabled={!newAddon.name.trim()}
+                    style={{
+                      flexShrink: 0,
+                      height: 40,
+                      padding: "0 14px",
+                      borderRadius: 8,
+                      border: "none",
+                      background: newAddon.name.trim() ? "#D94F00" : "#EEE",
+                      color: newAddon.name.trim() ? "white" : "#999",
+                      fontWeight: 700,
+                      fontSize: 18,
+                      cursor: newAddon.name.trim() ? "pointer" : "default",
+                      transition: "background 0.2s",
+                    }}
+                    title="Add addon"
+                  >+</button>
+                </div>
+                {form.addons.length === 0 && (
+                  <div style={{ fontSize: 11, color: "#BDBDBD", marginTop: 5 }}>No addons yet. Type a name above and press + to add.</div>
+                )}
+              </div>
+
               <button className="btn-primary" onClick={submitForm} disabled={loading}>
                 {loading ? "Saving..." : editId ? "Save Changes" : "Add Item"}
               </button>
-              {editId && <button className="btn-secondary" onClick={() => { setEditId(null); setForm(emptyForm); }}>Cancel</button>}
+              {editId && <button className="btn-secondary" onClick={() => { setEditId(null); setForm(emptyForm); setNewAddon(emptyAddon); }}>Cancel</button>}
             </div>
 
+            {/* Menu list */}
             {menuItems.length === 0
               ? <div className="empty">No items yet. Add your first item above.</div>
               : menuItems.map(item => (
@@ -248,7 +356,18 @@ export default function AdminPanel({ user, onBack }) {
                   </div>
                   <div style={{ flex: 1 }}>
                     <div className="menu-item-name">{item.name}</div>
-                    <div className="menu-item-sub">₹{item.price} · {item.category} · <span className={`tag ${item.type}`}>{item.type}</span></div>
+                    <div className="menu-item-sub">
+                      ₹{item.price} · {item.category} · <span className={`tag ${item.type}`}>{item.type}</span>
+                    </div>
+                    {item.addons && item.addons.length > 0 && (
+                      <div style={{ marginTop: 3, display: "flex", flexWrap: "wrap", gap: 4 }}>
+                        {item.addons.map(a => (
+                          <span key={a.id} style={{ fontSize: 10, padding: "2px 7px", borderRadius: 4, background: "#FFF3EC", color: "#D94F00", border: "1px solid #FFD5B8", fontWeight: 600 }}>
+                            {a.name}{a.price > 0 ? ` +₹${a.price}` : ""}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                     <div className={`tog ${item.available ? "on" : "off"}`} onClick={() => toggleItem(item.id)}><div className="tog-knob" /></div>
