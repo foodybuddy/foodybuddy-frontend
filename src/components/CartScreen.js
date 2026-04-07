@@ -15,23 +15,42 @@ export default function CartScreen({ user, cartItems, cartTotal, onBack, onCheck
         <div className="screen-title">Your Cart</div>
       </div>
       <div className="screen-body">
-        {cartItems.map(item => (
-          <div className="cart-item" key={item.id}>
-            <div className="cart-thumb">
-              {item.image_url
-                ? <img src={item.image_url} alt={item.name} />
-                : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#BDBDBD" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-              }
+        {cartItems.map(item => {
+          const addonsPrice = (item.selectedAddons || []).reduce((s, a) => s + a.price, 0);
+          const lineTotal   = (item.price + addonsPrice) * item.qty;
+
+          return (
+            <div className="cart-item" key={item.id} style={{ flexDirection: "column", alignItems: "stretch", gap: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div className="cart-thumb">
+                  {item.image_url
+                    ? <img src={item.image_url} alt={item.name} />
+                    : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#BDBDBD" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                  }
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="cart-name">{item.name}</div>
+                  {item.selectedAddons && item.selectedAddons.length > 0 && (
+                    <div className="cart-addons">
+                      {item.selectedAddons.map(a => (
+                        <span key={a.id} className="cart-addon-tag">
+                          {a.name}{a.price > 0 ? ` +₹${a.price}` : ""}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="cart-price">₹{lineTotal}</div>
+                <div className="qty-ctrl">
+                  <button onClick={() => removeItem(item.id)}>−</button>
+                  <span>{item.qty}</span>
+                  <button onClick={() => addItem(item, item.selectedAddons || [])}>+</button>
+                </div>
+              </div>
             </div>
-            <div className="cart-name">{item.name}</div>
-            <div className="cart-price">₹{item.price * item.qty}</div>
-            <div className="qty-ctrl">
-              <button onClick={() => removeItem(item.id)}>−</button>
-              <span>{item.qty}</span>
-              <button onClick={() => addItem(item)}>+</button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
+
         <div className="divider" />
         <div className="total-row">
           <span className="total-label">Total</span>
